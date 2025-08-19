@@ -1,0 +1,33 @@
+{
+  "name": "@triargos/linear-outlook-sync",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "../../node_modules/.bin/tsc",
+    "dev": "pnpm dlx tsx src/main.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/msal-node": "^3.7.1",
+    "@effect/platform": "^0.90.3",
+    "@effect/platform-node": "^0.96.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@triargos/effect-linear": "workspace:*",
+    "dotenv": "^17.2.1",
+    "effect": "^3.17.7",
+    "luxon": "^3.7.1"
+  },
+  "devDependencies": {
+    "@effect/language-service": "^0.35.2",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^24.2.1",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

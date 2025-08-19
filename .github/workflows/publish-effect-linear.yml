@@ -1,0 +1,41 @@
+name: Publish @triargos/effect-linear
+
+on:
+  push:
+    tags:
+      - 'effect-linear-v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        working-directory: ./shared/effect-linear
+        run: pnpm typecheck
+
+      - name: Build
+        working-directory: ./shared/effect-linear
+        run: pnpm build
+
+      - name: Publish to npm
+        working-directory: ./shared/effect-linear
+        run: pnpm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
