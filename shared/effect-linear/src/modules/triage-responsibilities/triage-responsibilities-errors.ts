@@ -1,16 +1,16 @@
-import { Data } from "effect";
-import { LinearError } from "../../internal/error.ts";
+import { Data } from 'effect';
+import { LinearError } from '../../internal/error.ts';
 import {
   CreateTriageResponsibilityOptions,
   UpdateTriageResponsibilityOptions,
-} from "./triage-responsibilities-schemas.ts";
+} from './triage-responsibilities-schemas.ts';
 
 /**
  * Error thrown when listing triage responsibilities fails.
  * Caused by Linear API errors during retrieval of triage responsibility list.
  */
 export class ListTriageResponsibilitiesError extends Data.TaggedError(
-  "ListTriageResponsibilitiesError",
+  'ListTriageResponsibilitiesError'
 )<{
   error: LinearError;
 }> {}
@@ -20,7 +20,7 @@ export class ListTriageResponsibilitiesError extends Data.TaggedError(
  * Caused by Linear API errors or when the triage responsibility is not found.
  */
 export class FindTriageResponsibilityError extends Data.TaggedError(
-  "FindTriageResponsibilityError",
+  'FindTriageResponsibilityError'
 )<{
   error: LinearError;
   id: string;
@@ -31,7 +31,7 @@ export class FindTriageResponsibilityError extends Data.TaggedError(
  * Caused by Linear API errors during triage responsibility creation.
  */
 export class CreateTriageResponsibilityError extends Data.TaggedError(
-  "CreateTriageResponsibilityError",
+  'CreateTriageResponsibilityError'
 )<{
   error: LinearError;
   input: CreateTriageResponsibilityOptions;
@@ -42,7 +42,7 @@ export class CreateTriageResponsibilityError extends Data.TaggedError(
  * Caused by Linear API errors during triage responsibility update.
  */
 export class UpdateTriageResponsibilityError extends Data.TaggedError(
-  "UpdateTriageResponsibilityError",
+  'UpdateTriageResponsibilityError'
 )<{
   error: LinearError;
   input: UpdateTriageResponsibilityOptions;
@@ -54,7 +54,7 @@ export class UpdateTriageResponsibilityError extends Data.TaggedError(
  * Caused by Linear API errors during triage responsibility deletion.
  */
 export class DeleteTriageResponsibilityError extends Data.TaggedError(
-  "DeleteTriageResponsibilityError",
+  'DeleteTriageResponsibilityError'
 )<{
   error: LinearError;
   id: string;

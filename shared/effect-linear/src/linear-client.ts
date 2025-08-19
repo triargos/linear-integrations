@@ -1,9 +1,9 @@
-import { Effect, Layer } from "effect";
-import { LinearTriageResponsibilities } from "./modules/triage-responsibilities/triage-responsibilities-service.ts";
+import { Effect, Layer } from 'effect';
+import { LinearTriageResponsibilities } from './modules/triage-responsibilities/triage-responsibilities-service.ts';
 import {
   LinearClientOptions,
   LinearClientWrapper,
-} from "./internal/client-wrapper.ts";
+} from './internal/client-wrapper.ts';
 
 /**
  * Linear client service that provides access to Linear API functionality in an effectful way
@@ -51,14 +51,14 @@ import {
  * ```
  */
 export class LinearClient extends Effect.Service<LinearClient>()(
-  "LinearClient",
+  'LinearClient',
   {
     dependencies: [LinearTriageResponsibilities.Default],
     effect: Effect.gen(function* () {
       const triageResponsibilities = yield* LinearTriageResponsibilities;
       return { triageResponsibilities } as const;
     }),
-  },
+  }
 ) {
   /**
    * Creates a LinearClient layer using configuration from environment variables.
@@ -69,7 +69,7 @@ export class LinearClient extends Effect.Service<LinearClient>()(
   static layerConfig() {
     return Layer.provideMerge(
       LinearClient.Default,
-      LinearClientWrapper.layerConfig(),
+      LinearClientWrapper.layerConfig()
     );
   }
 
@@ -82,7 +82,7 @@ export class LinearClient extends Effect.Service<LinearClient>()(
   static layer({ apiKey }: LinearClientOptions) {
     return Layer.provideMerge(
       LinearClient.Default,
-      LinearClientWrapper.Default({ apiKey }),
+      LinearClientWrapper.Default({ apiKey })
     );
   }
 }

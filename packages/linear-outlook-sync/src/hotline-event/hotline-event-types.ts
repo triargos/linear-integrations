@@ -1,11 +1,11 @@
-import {DateTime} from "luxon";
+import { DateTime } from 'luxon';
 
 export interface AssignedUser {
-    shortName: string;
-    linearUserId: string
+  shortName: string;
+  linearUserId: string;
 }
 
 export interface HotlineEvent {
-    assignedUser: AssignedUser,
-    date: DateTime
+  assignedUser: AssignedUser;
+  date: DateTime;
 }

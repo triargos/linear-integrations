@@ -2,9 +2,10 @@
   "name": "@triargos/linear-outlook-sync",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "build": "../../node_modules/.bin/tsc",
     "dev": "pnpm dlx tsx src/main.ts",
     "start": "node dist/index.js"
@@ -17,7 +18,7 @@
     "@effect/platform": "^0.90.3",
     "@effect/platform-node": "^0.96.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@triargos/effect-linear": "workspace:*",
+    "@triargos/effect-linear": "0.0.1",
     "dotenv": "^17.2.1",
     "effect": "^3.17.7",
     "luxon": "^3.7.1"
@@ -28,6 +29,7 @@
     "@types/node": "^24.2.1",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }

@@ -6,12 +6,16 @@
     "dev": "pnpm -r dev",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "linear": "pnpm --filter @triargos/effect-linear"
-
+    "format": "prettier --write \"packages/**/*.ts\" \"shared/**/*.ts\"",
+    "linear": "pnpm --filter @triargos/effect-linear",
+    "outlook": "pnpm --filter @triargos/linear-outlook-sync"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18",
     "pnpm": ">=8"
+  },
+  "dependencies": {
+    "prettier": "^3.6.2"
   }
 }

@@ -1,17 +1,17 @@
-import { Effect } from "effect";
+import { Effect } from 'effect';
 import {
   CreateTriageResponsibilityOptions,
   TriageResponsibilityIdOptions,
   UpdateTriageResponsibilityOptions,
-} from "./triage-responsibilities-schemas.ts";
+} from './triage-responsibilities-schemas.ts';
 import {
   CreateTriageResponsibilityError,
   DeleteTriageResponsibilityError,
   FindTriageResponsibilityError,
   ListTriageResponsibilitiesError,
   UpdateTriageResponsibilityError,
-} from "./triage-responsibilities-errors.ts";
-import { LinearClientWrapper } from "../../internal/client-wrapper.ts";
+} from './triage-responsibilities-errors.ts';
+import { LinearClientWrapper } from '../../internal/client-wrapper.ts';
 
 /**
  *
@@ -19,7 +19,7 @@ import { LinearClientWrapper } from "../../internal/client-wrapper.ts";
  * of team members for new issues.
  */
 export class LinearTriageResponsibilities extends Effect.Service<LinearTriageResponsibilities>()(
-  "LinearTriageResponsibilities",
+  'LinearTriageResponsibilities',
   {
     effect: Effect.gen(function* () {
       const client = yield* LinearClientWrapper;
@@ -27,110 +27,108 @@ export class LinearTriageResponsibilities extends Effect.Service<LinearTriageRes
         /**
          * Retrieves all triage responsibilities from Linear.
          */
-        list: Effect.fn("triageResponsibilities.list")(function* () {
+        list: Effect.fn('triageResponsibilities.list')(function* () {
           return yield* client
-            .use((linearClient) => linearClient.triageResponsibilities())
+            .use(linearClient => linearClient.triageResponsibilities())
             .pipe(
-              Effect.map((list) => list.nodes),
+              Effect.map(list => list.nodes),
               Effect.mapError(
-                (error) => new ListTriageResponsibilitiesError({ error }),
-              ),
+                error => new ListTriageResponsibilitiesError({ error })
+              )
             );
         }),
 
         /**
          * Finds a specific triage responsibility by its unique ID.
          */
-        findById: Effect.fn("triageResponsibilities.findById")(function* (
-          options: TriageResponsibilityIdOptions,
+        findById: Effect.fn('triageResponsibilities.findById')(function* (
+          options: TriageResponsibilityIdOptions
         ) {
           return yield* client
-            .use((linearClient) =>
-              linearClient.triageResponsibility(options.id),
-            )
+            .use(linearClient => linearClient.triageResponsibility(options.id))
             .pipe(
               Effect.mapError(
-                (error) =>
-                  new FindTriageResponsibilityError({ id: options.id, error }),
-              ),
+                error =>
+                  new FindTriageResponsibilityError({ id: options.id, error })
+              )
             );
         }),
 
         /**
          * Creates a new triage responsibility configuration.
          */
-        create: Effect.fn("triageResponsibilities.create")(function* (
-          options: CreateTriageResponsibilityOptions,
+        create: Effect.fn('triageResponsibilities.create')(function* (
+          options: CreateTriageResponsibilityOptions
         ) {
           return yield* client
-            .use((linearClient) =>
+            .use(linearClient =>
               linearClient.createTriageResponsibility({
                 teamId: options.teamId,
                 action: options.action,
                 ...(options.users && {
                   manualSelection: { userIds: options.users },
                 }),
-              }),
+              })
             )
             .pipe(
               Effect.mapError(
-                (error) =>
+                error =>
                   new CreateTriageResponsibilityError({
                     error,
                     input: options,
-                  }),
-              ),
+                  })
+              )
             );
         }),
 
         /**
          * Updates an existing triage responsibility configuration.
          */
-        update: Effect.fn("triageResponsibilities.update")(function* (
-          options: UpdateTriageResponsibilityOptions,
+        update: Effect.fn('triageResponsibilities.update')(function* (
+          options: UpdateTriageResponsibilityOptions
         ) {
           return yield* client
-            .use((linearClient) =>
+            .use(linearClient =>
               linearClient.updateTriageResponsibility(options.id, {
                 action: options.action,
                 ...(options.users && {
                   manualSelection: { userIds: options.users },
                 }),
-              }),
+              })
             )
             .pipe(
               Effect.mapError(
-                (error) =>
+                error =>
                   new UpdateTriageResponsibilityError({
                     error,
                     input: options,
                     id: options.id,
-                  }),
-              ),
+                  })
+              )
             );
         }),
 
         /**
          * Deletes an existing triage responsibility configuration.
          */
-        delete: Effect.fn("triageResponsibilities.delete")(function* (
-          options: TriageResponsibilityIdOptions,
+        delete: Effect.fn('triageResponsibilities.delete')(function* (
+          options: TriageResponsibilityIdOptions
         ) {
           return yield* client
-            .use((linearClient) =>
-              linearClient.deleteTriageResponsibility(options.id),
+            .use(linearClient =>
+              linearClient.deleteTriageResponsibility(options.id)
             )
             .pipe(
               Effect.mapError(
-                (error) =>
+                error =>
                   new DeleteTriageResponsibilityError({
                     error,
                     id: options.id,
-                  }),
-              ),
+                  })
+              )
             );
         }),
       } as const;
     }),
-  },
+  }
 ) {}

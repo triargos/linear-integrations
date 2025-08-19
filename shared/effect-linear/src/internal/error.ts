@@ -6,8 +6,8 @@ import {
   LinearError as OriginalLinearError,
   LinearErrorType,
   RatelimitedLinearError,
-} from "@linear/sdk";
-import { Data } from "effect";
+} from '@linear/sdk';
+import { Data } from 'effect';
 
 // ============================================================================
 // TYPES
@@ -37,7 +37,7 @@ interface LinearRateLimitErrorContext extends LinearBaseErrorContext {
  * Caused by `ForbiddenLinearError` or `FeatureNotAccessibleLinearError` from Linear SDK.
  */
 export class LinearForbiddenError extends Data.TaggedError(
-  "LinearForbiddenError",
+  'LinearForbiddenError'
 )<LinearBaseErrorContext> {}
 
 /**
@@ -46,7 +46,7 @@ export class LinearForbiddenError extends Data.TaggedError(
  * Caused by `InvalidInputLinearError` from Linear SDK.
  */
 export class LinearInvalidInputError extends Data.TaggedError(
-  "LinearInvalidInputError",
+  'LinearInvalidInputError'
 )<LinearBaseErrorContext> {}
 
 /**
@@ -56,7 +56,7 @@ export class LinearInvalidInputError extends Data.TaggedError(
  * Caused by `RatelimitedLinearError` from Linear SDK.
  */
 export class LinearRateLimitError extends Data.TaggedError(
-  "LinearRateLimitError",
+  'LinearRateLimitError'
 )<LinearRateLimitErrorContext> {}
 
 /**
@@ -66,7 +66,7 @@ export class LinearRateLimitError extends Data.TaggedError(
  * Caused by unknown Linear errors or non-Linear exceptions.
  */
 export class LinearInternalError extends Data.TaggedError(
-  "LinearInternalError",
+  'LinearInternalError'
 )<LinearBaseErrorContext> {}
 
 /**
@@ -75,7 +75,7 @@ export class LinearInternalError extends Data.TaggedError(
  * Caused by `AuthenticationLinearError` from Linear SDK.
  */
 export class LinearAuthenticationError extends Data.TaggedError(
-  "LinearAuthenticationError",
+  'LinearAuthenticationError'
 )<LinearBaseErrorContext> {}
 
 /**
@@ -97,14 +97,14 @@ export function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  if (typeof error === "string") {
+  if (typeof error === 'string') {
     return error;
   }
 
   try {
     return JSON.stringify(error);
   } catch {
-    return "Unknown error";
+    return 'Unknown error';
   }
 }
 
@@ -151,7 +151,7 @@ interface WithLinearErrorContext {
 }
 
 export function getLinearErrorCause<TError extends WithLinearErrorContext>(
-  error: TError,
+  error: TError
 ) {
   return error.error;
 }

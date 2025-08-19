@@ -1,45 +1,54 @@
-import {Effect, Ref, Schema} from "effect";
-import {FileSystem} from "@effect/platform";
-import {NodeFileSystem} from "@effect/platform-node";
-import {ConfigSchema, configSchema, InvalidConfigurationError} from "./config-types";
+import { Config, Effect, HashMap } from 'effect';
+import { ConfigSchema, InvalidConfigurationError } from './config-types';
+import { hashMapToRecord } from '../utils/hashmap-to-record.ts';
 
-
-export class ConfigurationService extends Effect.Service<ConfigurationService>()("ConfigurationService", {
-    effect: Effect.gen(function* () {
-        const configRef = yield* Ref.make<ConfigSchema | null>(null)
-
-        const fs = yield* FileSystem.FileSystem;
-        const load = Effect.gen(function* () {
-            const cachedValue = yield* configRef.get
-            if (cachedValue !== null) {
-                yield* Effect.logDebug("Using cached configuration")
-                return cachedValue
-            }
-            const configPath = "config.json";
-            yield* Effect.logDebug("Reading configuration file")
-            const configContent = yield* fs.readFileString(configPath).pipe(
-                Effect.mapError(error => new InvalidConfigurationError({
-                    message: `Failed to read config file: ${error}`
-                }))
-            );
-            yield* Effect.logDebug("Parsing configuration content")
-            const parsedConfig = yield* Schema.decodeUnknown(Schema.parseJson(configSchema))(configContent).pipe(Effect.mapError(error => new InvalidConfigurationError({
-                message: `Failed to parse config: ${error.message}`
-            })))
-            yield* Effect.logDebug("Setting configuration to cache")
-            yield* Ref.set(configRef, parsedConfig)
-            return parsedConfig
-        })
-        return {load};
+const appConfig = Config.all({
+  linear: Config.all({
+    users: Config.hashMap(Config.string(), 'LINEAR.USERS').pipe(
+      Config.map(hashMapToRecord)
+    ),
+    auth: Config.all({
+      apiKey: Config.string('LINEAR.AUTH.API_KEY'),
     }),
-    dependencies: [NodeFileSystem.layer]
-}) {
-}
+    teamId: Config.string('LINEAR.TEAM_ID'),
+  }),
+  outlook: Config.all({
+    calendarEmail: Config.string('OUTLOOK.CALENDAR_EMAIL'),
+    eventRegex: Config.string('OUTLOOK.EVENT_REGEX'),
+    auth: Config.all({
+      tenantId: Config.string('OUTLOOK.AUTH.TENANT_ID'),
+      clientId: Config.string('OUTLOOK.AUTH.CLIENT_ID'),
+      clientSecret: Config.string('OUTLOOK.AUTH.CLIENT_SECRET'),
+    }),
+  }),
+});
 
+export class ConfigurationService extends Effect.Service<ConfigurationService>()(
+  'ConfigurationService',
+  {
+    effect: Effect.gen(function* () {
+      const load = Effect.gen(function* () {
+        yield* Effect.logDebug(
+          'Loading configuration from environment variables'
+        );
+        const config = yield* appConfig.pipe(
+          Effect.mapError(
+            error =>
+              new InvalidConfigurationError({
+                message: `Failed to load config from environment: ${error.message}`,
+              })
+          )
+        );
+        return config satisfies ConfigSchema;
+      });
+      return { load };
+    }),
+  }
+) {}
 
 export const loadConfig = Effect.gen(function* () {
-    const configService = yield* ConfigurationService;
-    return yield* configService.load;
-})
+  const configService = yield* ConfigurationService;
+  return yield* configService.load;
+});
 
-export const ConfigurationServiceLive = ConfigurationService.Default
+export const ConfigurationServiceLive = ConfigurationService.Default;

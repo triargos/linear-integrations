@@ -10,7 +10,7 @@ export {
   LinearRateLimitError,
   type LinearError,
   getLinearErrorCause,
-} from "./internal/error.ts";
+} from './internal/error.ts';
 
 //Triage errors
-export * from "./modules/triage-responsibilities/triage-responsibilities-errors.ts";
+export * from './modules/triage-responsibilities/triage-responsibilities-errors.ts';

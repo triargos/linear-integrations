@@ -7,9 +7,9 @@ export class DetermineNextHotlineEventError extends Data.TaggedError(
   date: string;
 }> {}
 
-export class DetermineAssignedUserError extends Data.TaggedError(
-  'DetermineAssignedUserError'
+export class DetermineUserFromEventError extends Data.TaggedError(
+  'DetermineUserFromEventError'
 )<{
   subject: string;
-  userShortNames: string[];
+  mappedUserNames: string[];
 }> {}

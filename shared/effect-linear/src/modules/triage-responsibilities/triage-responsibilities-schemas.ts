@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Schema } from 'effect';
 
 /**
  * Schema defining the available actions for triage responsibility.
@@ -6,7 +6,7 @@ import { Schema } from "effect";
  * - "notify": Send notifications to specified users about new issues
  * - "assign": Automatically assign new issues to specified users
  */
-const TriageResponsibilityActionSchema = Schema.Literal("notify", "assign");
+const TriageResponsibilityActionSchema = Schema.Literal('notify', 'assign');
 
 /**
  * Schema for an optional array of user IDs.
@@ -14,7 +14,7 @@ const TriageResponsibilityActionSchema = Schema.Literal("notify", "assign");
  * The array is mutable and contains string user IDs.
  */
 const OptionalUsersArraySchema = Schema.optional(
-  Schema.mutable(Schema.Array(Schema.String)),
+  Schema.mutable(Schema.Array(Schema.String))
 );
 /**
  * Schema for creating triage responsibility configurations.

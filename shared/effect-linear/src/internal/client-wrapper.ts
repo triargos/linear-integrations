@@ -1,10 +1,10 @@
-import { LinearClient as OriginalLinearClient } from "@linear/sdk";
-import { Config, Effect, Layer, Redacted } from "effect";
-import { handleLinearError, LinearError } from "./error.ts";
+import { LinearClient as OriginalLinearClient } from '@linear/sdk';
+import { Config, Effect, Layer, Redacted } from 'effect';
+import { handleLinearError, LinearError } from './error.ts';
 
 interface LinearClientDefinition {
   use: <T>(
-    fn: (client: OriginalLinearClient) => T | Promise<T>,
+    fn: (client: OriginalLinearClient) => T | Promise<T>
   ) => Effect.Effect<T, LinearError, never>;
 }
 
@@ -13,14 +13,14 @@ export interface LinearClientOptions {
 }
 
 export class LinearClientWrapper extends Effect.Service<LinearClientWrapper>()(
-  "LinearClientWrapper",
+  'LinearClientWrapper',
   {
     scoped: Effect.fnUntraced(function* (opts: LinearClientOptions) {
       const linearClient = new OriginalLinearClient({
         apiKey: Redacted.value(opts.apiKey),
       });
       return {
-        use: (fn) =>
+        use: fn =>
           Effect.gen(function* () {
             const initialResult = yield* Effect.try({
               try: () => fn(linearClient),
@@ -36,14 +36,14 @@ export class LinearClientWrapper extends Effect.Service<LinearClientWrapper>()(
           }),
       } satisfies LinearClientDefinition;
     }),
-  },
+  }
 ) {
   static layerConfig() {
     return Layer.unwrapEffect(
       Effect.gen(function* () {
-        const apiKey = yield* Config.redacted("LINEAR_API_KEY");
+        const apiKey = yield* Config.redacted('LINEAR_API_KEY');
         return LinearClientWrapper.Default({ apiKey });
-      }),
+      })
     );
   }
 }

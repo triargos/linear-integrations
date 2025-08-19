@@ -3,43 +3,59 @@ import { Event } from '../calendar/calendar-types';
 import { AssignedUser, HotlineEvent } from './hotline-event-types';
 import { isTodayOrFuture, sortEvents } from './hotline-event.utils';
 import {
-  DetermineAssignedUserError,
+  DetermineUserFromEventError,
   DetermineNextHotlineEventError,
 } from './hotline-event-error';
 import { DateTime } from 'luxon';
 
-const determineUser = (event: Event, linearUsers: Record<string, string>) =>
+const determineUser = (
+  event: Event,
+  linearUsers: Record<string, string>,
+  eventRegex: string
+) =>
   Effect.gen(function* () {
-    const userNames = Object.keys(linearUsers).join('|');
+    const lowerLinearUsers = Object.entries(linearUsers).reduce(
+      (rec, entry) => {
+        const [key, value] = entry;
+        rec[key.toLowerCase()] = value;
+        return rec;
+      },
+      {} as Record<string, string>
+    );
+
+    const userNames = Object.keys(lowerLinearUsers).join('|');
     const hotlineRegex = new RegExp(
-      `(${userNames})\\s+hotline|hotline\\s+(${userNames})`,
+      `(${userNames}).*?(?:${eventRegex})|(?:${eventRegex}).*?(${userNames})`,
       'i'
     );
-    const match = event.subject?.toLowerCase().match(hotlineRegex);
-    const userName = match?.[1] || match?.[2];
+    const subjectToMatch = event.subject?.toLowerCase();
+
+    const match = subjectToMatch?.match(hotlineRegex);
+    const userName = (match?.[1] || match?.[2])?.toLowerCase();
     if (!userName) {
-      return yield* new DetermineAssignedUserError({
-        subject: event.subject!,
-        userShortNames: Object.keys(linearUsers),
+      return yield* new DetermineUserFromEventError({
+        subject: subjectToMatch!,
+        mappedUserNames: Object.keys(lowerLinearUsers),
       });
     }
-    const userId = linearUsers[userName.toLowerCase()];
+    const userId = lowerLinearUsers[userName];
     return {
       linearUserId: userId,
-      shortName: userName.toLowerCase(),
+      shortName: userName,
     } satisfies AssignedUser;
   });
 
-const getNextEvent = (events: readonly Event[]) =>
+const getNextEvent = (events: readonly Event[], eventRegex: string) =>
   Effect.gen(function* () {
     yield* Effect.logDebug(
       `Searching for the next event in ${events.length} events`
     );
+    const regex = new RegExp(eventRegex, 'i');
     const nextEvent = events
       .filter(isTodayOrFuture)
       .sort(sortEvents)
       .find(event => {
-        return event.subject?.toLowerCase().includes('hotline');
+        return event.subject && regex.test(event.subject);
       });
     if (!nextEvent) {
       return yield* new DetermineNextHotlineEventError({
@@ -56,11 +72,16 @@ const getNextEvent = (events: readonly Event[]) =>
 const makeHotlineEventService = Effect.gen(function* () {
   const getNextAssignableHotlineEvent = (
     events: readonly Event[],
-    linearUsers: Record<string, string>
+    linearUsers: Record<string, string>,
+    eventRegex: string
   ) =>
     Effect.gen(function* () {
-      const nextEvent = yield* getNextEvent(events);
-      const assignedUser = yield* determineUser(nextEvent, linearUsers);
+      const nextEvent = yield* getNextEvent(events, eventRegex);
+      const assignedUser = yield* determineUser(
+        nextEvent,
+        linearUsers,
+        eventRegex
+      );
       return {
         assignedUser,
         date: DateTime.fromISO(nextEvent.start.dateTime).startOf('day'),
@@ -73,7 +94,9 @@ export class HotlineEventService extends Effect.Service<HotlineEventService>()(
   'HotlineEventService',
   {
     effect: makeHotlineEventService,
+    dependencies: [],
   }
 ) {}
 
 export const HotlineEventServiceLive = HotlineEventService.Default;
+export const HotlineEventServiceTest = HotlineEventService.Default;
