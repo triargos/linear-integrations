@@ -1,0 +1,20 @@
+{
+  "name": "@triargos/linear-connect-customer-import",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@effect/platform": "^0.90.3",
+    "csv-parser": "^3.2.0",
+    "effect": "^3.17.7"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}
