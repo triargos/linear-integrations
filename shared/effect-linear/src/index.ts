@@ -1,1 +1,1 @@
-export { LinearClient } from './linear-client';
+export { LinearClient } from './linear-client.ts';
