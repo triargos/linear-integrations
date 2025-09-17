@@ -1,14 +1,15 @@
 import { Data, Effect, Schema } from "effect";
-import { CsvRowSchema } from "../csv/parse-csv.ts";
+import { CsvRowSchema } from "../csv/parse-csv";
 
 /**
  * Schema representing a parsed customer with validated domain information.
  */
 export class CustomerSchema extends Schema.Class<CustomerSchema>("CustomerSchema")({
+    id: Schema.String,
     /** Customer name from the CSV */
     name: Schema.String,
     /** Array of validated domain names extracted from website field */
-    domains: Schema.Array(Schema.String),
+    domains: Schema.mutable(Schema.Array(Schema.String)),
     /** Optional number of children associated with the customer */
     childCount: Schema.optional(Schema.Number)
 }) {}
@@ -36,38 +37,40 @@ const DomainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-
 /**
  * Parses a CSV row into a Customer object with validated domain extraction.
  * 
- * The function extracts and cleans the website field by:
- * - Removing protocol (http/https)
- * - Removing www prefix
- * - Removing leading/trailing slashes
- * - Converting to lowercase
- * - Validating domain format and ensuring it contains at least one dot
+ * The function extracts domains from both email and website fields:
+ * - Primary domain from email address (after @ symbol)
+ * - Secondary domain from website field (cleaned and validated)
+ * - Removes duplicates and validates format
  * 
  * @param row - The CSV row data containing customer information
  * @returns Effect that resolves to a CustomerSchema or fails with InvalidDomainError
  */
+
+const DOMAINS_TO_EXCLUDE = [
+    "t-online.de"
+]
+
+
 export const parseCsvRowToCustomer = Effect.fn("parseCsvRowToCustomer")(function* ({ row }: { row: CsvRowSchema }) {
     const domains: string[] = [];
     
-    // Extract and clean the domain from the website field
-    const cleanDomain = yield* Effect.sync(() => row.Website.replace(/^https?:\/\//, '')).pipe(
-        Effect.flatMap(withoutProtocol => Effect.sync(() => withoutProtocol.replace(/^www\./, ''))),
-        Effect.flatMap(withoutSubdomain => Effect.sync(() => withoutSubdomain.replace(/^\/+|\/+$/g, ''))),
-        Effect.flatMap(withoutSlashes => Effect.sync(() => withoutSlashes.toLowerCase()))
-    );
-    
-    // Validate that the domain contains at least one dot and matches the pattern
-    if (cleanDomain && cleanDomain.includes('.') && DomainPattern.test(cleanDomain)) {
-        domains.push(cleanDomain);
-    } else {
+    // Extract domain from email address
+    const [_, emailDomain] = row.E_Mail.split("@")
+    // Validate email domain
+    if (emailDomain && emailDomain.includes(".") && DomainPattern.test(emailDomain)) {
+        domains.push(emailDomain);
+    }
+    // Ensure we have at least one valid domain
+    if (domains.length === 0 || domains.some(domain => DOMAINS_TO_EXCLUDE.includes(domain))) {
         return yield* new InvalidDomainError({
-            domain: cleanDomain,
+            domain: emailDomain,
             row,
             customerName: row.B_Zuordnung
         });
     }
 
     return new CustomerSchema({
+        id: row.Debitornummer.toString(),
         name: row.B_Zuordnung,
         domains,
         childCount: row.Kinderzahl

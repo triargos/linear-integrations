@@ -17,9 +17,10 @@ const EmailRegex = /^(?!\.)(?!.*\.\.)([a-z0-9_'+\-\.]*)[a-z0-9_'+\-]@([a-z0-9][a
  */
 
 export class CsvRowSchema extends Schema.Class<CsvRowSchema>("CsvRowSchema")({
+    Debitornummer: Schema.NumberFromString,
     B_Zuordnung: Schema.NonEmptyString.pipe(
         Schema.pattern(/^[^\r\n]*$/, { message: () => "Customer name must not contain newlines" }),
-    ).annotations({ message: (parseIssue) => `Expected a customer name, received ${parseIssue.actual}` }),
+    ),
     Website: Schema.String.pipe(
         Schema.pattern(/^[^\r\n]*$/, { message: () => "Website must not contain newlines" }),
     ),
@@ -27,7 +28,14 @@ export class CsvRowSchema extends Schema.Class<CsvRowSchema>("CsvRowSchema")({
         Schema.pattern(/^[^\r\n]*$/, { message: () => "Email must not contain newlines" }),
         Schema.pattern(EmailRegex, { message: (parseIssue) => `Expected a valid email address, received ${parseIssue.actual}` }),
     ),
-    Kinderzahl: Schema.optional(Schema.Number),
+    Kinderzahl: Schema.Union(
+       Schema.String.pipe(
+           Schema.transform(Schema.Number, {
+               encode: (value) => String(value),
+               decode: (stringValue) => !isNaN(Number(stringValue)) ? Number(stringValue) : 0,
+           })
+       )
+    )
 }) {}
 
 /**
@@ -60,20 +68,18 @@ export class CsvParser extends Effect.Service<CsvParser>()("CsvParser", {
             customFilePath: string;
         }) {
             yield* Effect.logDebug(`Reading file at ${customFilePath}...`);
-            const fileContents = yield* fs.readFileString(customFilePath).pipe(contents => Effect.try({
-                try: () => Readable.from(contents),
-                catch: (error) => new Error(`Failed to create readable from file contents: ${error}`)
-            }));
+            const fileContents = yield* fs.readFileString(customFilePath);
             yield* Effect.logDebug(`Parsing file stream...`);
             const csvRows = yield* Effect.async<unknown[], Error>((resume) => {
                 const results: unknown[] = [];
-                fileContents
-                    .pipe(csvParser())
+                const stream = Readable.from(fileContents);
+                stream
+                    .pipe(csvParser({separator:";"}))
                     .on('data', (data) => results.push(data))
                     .on('end', () => resume(Effect.succeed(results)))
                     .on('error', (err) => resume(Effect.fail(new Error(`CSV parsing failed: ${err.message}`))));
             });
-            yield* Effect.logDebug(`Read ${csvRows.length} records from file`);
+            yield* Effect.logInfo(`Read ${csvRows.length} records from file`);
             return csvRows;
         });
 
@@ -85,6 +91,7 @@ export class CsvParser extends Effect.Service<CsvParser>()("CsvParser", {
         const parseCsvRows = Effect.fn("CsvParser.parseCsvRows")(function* ({ rows }: { rows: unknown[] }) {
             const [failedRows, customers] = yield* Effect.partition(rows, (row, index) => 
                 Schema.decodeUnknown(CsvRowSchema)(row).pipe(
+                    Effect.tapError(parseErr => Effect.logError(parseErr.message)),
                     Effect.catchAll(parseError => new ParseCsvRowError({
                         parseError,
                         rowIndex: index,
