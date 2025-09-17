@@ -65,7 +65,7 @@ export class UpsertCustomerService extends Effect.Service<UpsertCustomerService>
         }) {
             //Try to find a matching customer by external ID
             const matchingCustomer = yield* findMatchingCustomer({customer, linearCustomers})
-            return Option.match(matchingCustomer, {
+            return yield* Option.match(matchingCustomer, {
                 onSome: (linearCustomer) => Effect.gen(function * () {
                     const needsUpdate = linearCustomer.size !== customer.childCount || linearCustomer.name !== customer.name
                     if (needsUpdate) {
