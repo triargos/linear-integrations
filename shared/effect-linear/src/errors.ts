@@ -14,3 +14,5 @@ export {
 
 //Triage errors
 export * from './modules/triage-responsibilities/triage-responsibilities-errors.ts';
+//Customer errors
+export * from "./modules/customer/customer-errors.ts"

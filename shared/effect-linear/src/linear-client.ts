@@ -4,6 +4,7 @@ import {
   LinearClientOptions,
   LinearClientWrapper,
 } from './internal/client-wrapper.ts';
+import {LinearCustomers} from "./modules/customer/customer-service.ts";
 
 /**
  * Linear client service that provides access to Linear API functionality in an effectful way
@@ -53,10 +54,11 @@ import {
 export class LinearClient extends Effect.Service<LinearClient>()(
   'LinearClient',
   {
-    dependencies: [LinearTriageResponsibilities.Default],
+    dependencies: [LinearTriageResponsibilities.Default, LinearCustomers.Default],
     effect: Effect.gen(function* () {
       const triageResponsibilities = yield* LinearTriageResponsibilities;
-      return { triageResponsibilities } as const;
+      const customers = yield* LinearCustomers
+      return { triageResponsibilities, customers } as const;
     }),
   }
 ) {
