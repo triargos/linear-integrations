@@ -3,8 +3,7 @@ import {runOutlookSync} from "../main.ts";
 
 export const outlookSyncTask = schedules.task({
     id: "run-outlook-sync",
-    // Every hour
-    cron: "0 * * * *",
+    cron: "0 1,9,17 * * *",
     // Set an optional maxDuration to prevent tasks from running indefinitely
     maxDuration: 300, // Stop executing after 300 secs (5 mins) of compute
     run: async (payload, {ctx}) => {
