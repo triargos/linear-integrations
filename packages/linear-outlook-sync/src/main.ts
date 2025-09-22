@@ -13,6 +13,7 @@ if (process.env.NODE_ENV !== 'production') {
     config();
 }
 
+
 const program = Effect.gen(function* () {
     const calendarService = yield* OutlookCalendarService
     const configService = yield* ConfigurationService
@@ -65,9 +66,6 @@ const BaseLayer = Layer.mergeAll(
 )
 
 
-
-
-
 const AppLayer = Layer.provideMerge(BaseLayer, ConfigurationServiceLive);
 const runnable = program.pipe(
     Effect.tapError((error) =>
@@ -80,5 +78,8 @@ const runnable = program.pipe(
     Effect.provide(AppLayer),
 );
 
+export function runOutlookSync() {
+   return Effect.runPromiseExit(runnable);
+}
 
-Effect.runPromiseExit(runnable);
+

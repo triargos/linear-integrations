@@ -10,6 +10,7 @@ export class ErrorTracker extends Effect.Service<ErrorTracker>()("ErrorTracker",
                 } catch {
                     jsonError = error.toString();
                 }
+                yield* Effect.logInfo("Capturing error...")
                 yield* Effect.logError(error.message, {
                     error: jsonError,
                 });

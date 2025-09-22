@@ -27,14 +27,15 @@
     "@opentelemetry/sdk-trace-web": "2.1.0",
     "@sentry/node": "10.13.0",
     "@sentry/opentelemetry": "10.13.0",
-    "@sentry/profiling-node": "^10.13.0",
     "@triargos/effect-linear": "0.0.4",
+    "@trigger.dev/sdk": "4.0.4",
     "dotenv": "^17.2.1",
     "effect": "^3.17.7",
     "luxon": "^3.7.1"
   },
   "devDependencies": {
     "@effect/language-service": "^0.35.2",
+    "@trigger.dev/build": "4.0.4",
     "@types/luxon": "^3.7.1",
     "@types/node": "^24.2.1",
     "prettier": "^3.6.2",

@@ -22,6 +22,10 @@
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "trigger.config.ts"
+  ],
   "exclude": ["dist", "node_modules"]
 }

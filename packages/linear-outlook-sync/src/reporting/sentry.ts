@@ -1,7 +1,6 @@
 import * as Sentry from "@sentry/node";
 import {Effect, Layer} from "effect";
 import {ConfigurationService} from "../config/config.ts";
-import {nodeProfilingIntegration} from "@sentry/profiling-node";
 import * as SentryOpenTelemetry from "@sentry/opentelemetry";
 import {OTLPTraceExporter} from "@opentelemetry/exporter-trace-otlp-http";
 import {NodeSdk} from "@effect/opentelemetry";
@@ -11,11 +10,11 @@ import {ErrorTracker} from "./error-tracking.ts";
 const defaultSentryClient = Effect.gen(function* () {
     const configService = yield* ConfigurationService
     const config = yield* configService.load
+    yield* Effect.addFinalizer(() => Effect.promise(() => Sentry.flush()))
     return Sentry.init({
         dsn: config.reporting.sentryDsn,
         environment: "production",
         integrations: [
-            nodeProfilingIntegration(),
             Sentry.extraErrorDataIntegration({
                 captureErrorCause: true,
                 depth: 10,
