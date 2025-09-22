@@ -1,8 +1,11 @@
-import { Config, Effect, HashMap } from 'effect';
-import { ConfigSchema, InvalidConfigurationError } from './config-types';
-import { hashMapToRecord } from '../utils/hashmap-to-record.ts';
+import {Config, Effect} from 'effect';
+import {ConfigSchema, InvalidConfigurationError} from './config-types';
+import {hashMapToRecord} from '../utils/hashmap-to-record.ts';
 
 const appConfig = Config.all({
+    reporting: Config.all({
+        sentryDsn: Config.string("REPORTING.SENTRY_DSN")
+    }),
   linear: Config.all({
     users: Config.hashMap(Config.string(), 'LINEAR.USERS').pipe(
       Config.map(hashMapToRecord)
@@ -28,9 +31,6 @@ export class ConfigurationService extends Effect.Service<ConfigurationService>()
   {
     effect: Effect.gen(function* () {
       const load = Effect.gen(function* () {
-        yield* Effect.logDebug(
-          'Loading configuration from environment variables'
-        );
         const config = yield* appConfig.pipe(
           Effect.mapError(
             error =>

@@ -12,6 +12,8 @@ import {
   UpdateTriageResponsibilityError,
 } from './triage-responsibilities-errors.ts';
 import { LinearClientWrapper } from '../../internal/client-wrapper.ts';
+export {TriageResponsibility} from "@linear/sdk"
+
 
 /**
  *

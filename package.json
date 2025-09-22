@@ -9,6 +9,7 @@
     "format": "prettier --write \"packages/**/*.ts\" \"shared/**/*.ts\"",
     "linear": "pnpm --filter @triargos/effect-linear",
     "outlook": "pnpm --filter @triargos/linear-outlook-sync",
+    "ingest": "pnpm --filter @triargos/linear-issue-ingest",
     "connect-import": "pnpm --filter @triargos/linear-connect-customer-import"
   },
   "packageManager": "pnpm@9.0.0",
