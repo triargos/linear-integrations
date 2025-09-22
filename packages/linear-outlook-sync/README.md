@@ -17,17 +17,17 @@ The service requires the following environment variables to be configured:
 
 ### Linear Configuration
 
-- `LINEAR.AUTH.API_KEY`: Your Linear API key for accessing the Linear API
-- `LINEAR.TEAM_ID`: The Linear team ID where triage responsibilities should be managed
-- `LINEAR.USERS_*`: Mapping of user names to Linear user IDs (see examples below)
+- `LINEAR_AUTH_API_KEY`: Your Linear API key for accessing the Linear API
+- `LINEAR_TEAM_ID`: The Linear team ID where triage responsibilities should be managed
+- `USERS_*`: Mapping of user names to Linear user IDs (see examples below)
 
 ### Outlook Configuration
 
-- `OUTLOOK.CALENDAR_EMAIL`: The email address of the Outlook calendar to monitor
-- `OUTLOOK.EVENT_REGEX`: Regular expression pattern to match calendar events (e.g., `hotline`)
-- `OUTLOOK.AUTH.TENANT_ID`: Azure AD tenant ID
-- `OUTLOOK.AUTH.CLIENT_ID`: Azure AD application client ID
-- `OUTLOOK.AUTH.CLIENT_SECRET`: Azure AD application client secret
+- `OUTLOOK_CALENDAR_EMAIL`: The email address of the Outlook calendar to monitor
+- `OUTLOOK_EVENT_REGEX`: Regular expression pattern to match calendar events (e.g., `hotline`)
+- `OUTLOOK_AUTH_TENANT_ID`: Azure AD tenant ID
+- `OUTLOOK_AUTH_CLIENT_ID`: Azure AD application client ID
+- `OUTLOOK_AUTH_CLIENT_SECRET`: Azure AD application client secret
 
 ## OUTLOOK_EVENT_REGEX Feature
 
@@ -36,14 +36,14 @@ The `OUTLOOK_EVENT_REGEX` configuration allows you to customize which calendar e
 ### Example Configuration
 
 ```bash
-OUTLOOK.EVENT_REGEX="hotline|support"
+OUTLOOK_EVENT_REGEX="hotline|support"
 ```
 
 ### How it works
 
 The service looks for calendar events with subjects that contain both a username and the regex pattern. The regex is flexible and allows various formats:
 
-**Example with `OUTLOOK.EVENT_REGEX="hotline|support"`:**
+**Example with `OUTLOOK_EVENT_REGEX="hotline|support"`:**
 
 ✅ **Matching events:**
 - `"John hotline duty"` → matches, assigns to John
@@ -63,10 +63,10 @@ The service looks for calendar events with subjects that contain both a username
 Configure user mappings to link calendar names with Linear user IDs:
 
 ```bash
-LINEAR.USERS_JOHN="550e8400-e29b-41d4-a716-446655440000"
-LINEAR.USERS_SARAH="660e8400-e29b-41d4-a716-446655440001" 
-LINEAR.USERS_MIKE="770e8400-e29b-41d4-a716-446655440002"
-LINEAR.USERS_MM="880e8400-e29b-41d4-a716-446655440003"
+USERS_JOHN="550e8400-e29b-41d4-a716-446655440000"
+USERS_SARAH="660e8400-e29b-41d4-a716-446655440001" 
+USERS_MIKE="770e8400-e29b-41d4-a716-446655440002"
+USERS_MM="880e8400-e29b-41d4-a716-446655440003"
 ```
 
 This will match calendar subjects like:
@@ -100,10 +100,22 @@ This will match calendar subjects like:
    
    Generate an API key from your Linear settings with access to triage responsibilities.
 
-5. **Run the service**
-   ```bash
-   npm start
-   ```
+5. **Get Linear User IDs**
+   
+   For each team member you want to map in the calendar events:
+   
+   1. Open Linear and navigate to a page relating to the user (user profile, or hover over them in the members overview)
+   2. Open the command palette with `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux)
+   3. Type "copy model uuid" and press Enter
+   4. The user's Linear ID will be copied to your clipboard
+   
+   ![copy-linear-user-id.png](../../.github/images/copy-linear-user-id.png)  
+
+   Use these IDs in your environment configuration as `USERS_{SHORTNAME}={linear_user_id}`.
+
+    > Example: `USERS_MM=f64bee33-6d13-49ba-9a6f-8c95d7b5b782`
+
+
 
 ## How it works
 
@@ -117,14 +129,6 @@ The service runs once per execution and:
 6. Extracts the assigned user from the event subject
 7. Updates or creates a Linear triage responsibility for the team
 
-## Error Handling
-
-The service includes comprehensive error handling for:
-- **Authentication failures**: Invalid Azure AD credentials
-- **Calendar access**: Permission issues or calendar not found  
-- **Event parsing**: Events that don't match expected format
-- **Linear API**: Issues creating/updating triage responsibilities
-- **Configuration**: Missing or invalid environment variables
 
 ## Development
 
@@ -143,11 +147,5 @@ src/
 ### Running Tests
 
 ```bash
-npm test
-```
-
-### Building
-
-```bash
-npm run build
+pnpm test
 ```

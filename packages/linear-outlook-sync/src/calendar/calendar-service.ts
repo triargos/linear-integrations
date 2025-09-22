@@ -1,94 +1,69 @@
-import { Effect, Schema } from 'effect';
-import {
-  GraphAuthService,
-  GraphAuthServiceLive,
-} from '../auth/graph-auth-service';
-import { CalendarListResponse, EventListResponse } from './calendar-types';
-import {
-  handleGraphError,
-  parseGraphResponseError,
-} from '../graph/graph-error';
-import { DateTime } from 'luxon';
-import { ConfigurationServiceLive } from '../config/config';
+import {Effect, Schema} from 'effect';
+import {CalendarListResponse, EventListResponse} from './calendar-types';
+import {handleGraphError, ParseGraphResponseError,} from '../graph/graph-error';
+import {DateTime} from 'luxon';
+import {GraphClient} from "../graph/graph-client.ts";
 
-const makeCalendarService = Effect.gen(function* () {
-  const authService = yield* GraphAuthService;
-  const listCalendars = (email: string) =>
-    Effect.gen(function* () {
-      const graphClient = yield* authService.getGraphClient;
-      const endpoint = `/users/${encodeURIComponent(email)}/calendars`;
 
-      const response = yield* Effect.tryPromise({
-        try: () => graphClient.api(endpoint).get(),
-        catch: error => handleGraphError(error, endpoint),
-      });
+export class OutlookCalendarService extends Effect.Service<OutlookCalendarService>()("OutlookCalendarService", {
+    dependencies: [GraphClient.Default],
+    effect: Effect.gen(function* () {
+        const graphClient = yield* GraphClient
 
-      const parsedResponse = yield* Schema.decodeUnknown(CalendarListResponse)(
-        response
-      ).pipe(
-        Effect.mapError(error =>
-          parseGraphResponseError(endpoint, response, error.message)
-        )
-      );
+        const listCalendarsByEmail = Effect.fn("OutlookCalendarService.listCalendarsByEmail")(function* ({email}: {
+            email: string
+        }) {
+            yield* Effect.annotateCurrentSpan({email})
+            const endpoint = `/users/${encodeURIComponent(email)}/calendars`;
 
-      return parsedResponse.value;
-    });
-
-  /**
-   * Lists calendar events for a user within a date range
-   * @param options - Configuration object
-   * @param options.email - User email address
-   * @param options.start - Start date (defaults to today)
-   * @param options.end - End date (defaults to today + 7 days)
-   * @returns Array of events within the specified date range
-   */
-  const listEvents = (options: {
-    email: string;
-    start?: DateTime;
-    end?: DateTime;
-  }) =>
-    Effect.gen(function* () {
-      const graphClient = yield* authService.getGraphClient;
-      const { email, end, start } = options;
-      const startDate = start ?? DateTime.now();
-      const endDate = end ?? DateTime.now().plus({ day: 7 });
-
-      const endpoint = `/users/${encodeURIComponent(email)}/calendarview`;
-      const response = yield* Effect.tryPromise({
-        try: () =>
-          graphClient
-            .api(endpoint)
-            .query({
-              startDateTime: startDate.toISODate()!,
-              endDateTime: endDate.toISODate()!,
+            const response = yield* Effect.tryPromise({
+                try: () => graphClient.api(endpoint).get(),
+                catch: error => handleGraphError(error, endpoint),
             })
-            .get(),
-        catch: error => handleGraphError(error, endpoint),
-      });
+            const parsed = yield* Schema.decodeUnknown(CalendarListResponse)(response).pipe(
+                Effect.mapError(cause => new ParseGraphResponseError({cause, endpoint}))
+            )
+            return parsed.value
+        })
 
-      const parsedResponse = yield* Schema.decodeUnknown(EventListResponse)(
-        response
-      ).pipe(
-        Effect.mapError(error =>
-          parseGraphResponseError(endpoint, response, error.message)
-        )
-      );
+        const listEventsByEmail = Effect.fn("OutlookCalendarService.listEventsByEmail")(function* ({
+                                                                                                       email,
+                                                                                                       startDate,
+                                                                                                       endDate
+                                                                                                   }: {
+            email: string,
+            startDate?: DateTime,
+            endDate?: DateTime
+        }) {
+            const start = startDate ?? DateTime.now().startOf("day")
+            const end = endDate ?? DateTime.now().startOf("day").plus({day: 1})
+            yield* Effect.annotateCurrentSpan({
+                start,
+                end,
+                email
+            })
+            const endpoint = `/users/${encodeURIComponent(email)}/calendarview`;
+            const response = yield* Effect.tryPromise({
+                try: () =>
+                    graphClient
+                        .api(endpoint)
+                        .query({
+                            startDateTime: start.toISODate()!,
+                            endDateTime: end.toISODate()!,
+                        })
+                        .get(),
+                catch: error => handleGraphError(error, endpoint),
+            });
+            const parsed = yield* Schema.decodeUnknown(EventListResponse)(response).pipe(
+                Effect.mapError(cause => new ParseGraphResponseError({cause, endpoint}))
+            )
+            return parsed.value
+        })
+        return {
+            listCalendarsByEmail,
+            listEventsByEmail
+        } as const
 
-      return parsedResponse.value;
-    });
-
-  return {
-    listCalendars,
-    listEvents,
-  };
-});
-
-export class CalendarService extends Effect.Service<CalendarService>()(
-  'CalendarService',
-  {
-    effect: makeCalendarService,
-    dependencies: [GraphAuthServiceLive, ConfigurationServiceLive],
-  }
-) {}
-
-export const CalendarServiceLive = CalendarService.Default;
+    })
+}) {
+}
